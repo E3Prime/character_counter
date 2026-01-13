@@ -8,19 +8,26 @@ initialize();
 function initialize() {
   const textInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('textInput'));
   const noSpaceOptionElem = /** @type {HTMLInputElement} */ (document.getElementById('noSpaceOption'));
+  const characterLimitOptionElem = /** @type {HTMLInputElement} */ (document.getElementById('characterLimitOption'));
+  const setCharacterLimitElem = /** @type {HTMLInputElement} */ (document.getElementById('setCharacterLimit'));
   const [totalCharsElem, wordCountElem, sentenceCountElem] = /** @type {Array<HTMLElement>} */ ([...document.querySelectorAll('.banner > :first-child')]);
   const viewMoreBtn = /** @type {HTMLButtonElement} */ (document.getElementById('viewMoreBtn'));
 
-  /** @param {Event} event */
-  const textObserver = (event) => {
-    const e = /** @type {InputEvent} */ (event);
+  /** @param {Event} e */
+  const textObserver = (e) => {
     const target = /** @type {HTMLTextAreaElement} */ (e.target);
+    const characterLimitActive = setCharacterLimitElem.checkVisibility();
+
+    if (characterLimitActive && target.value.length >= Number(setCharacterLimitElem.value)) {
+      return;
+    }
+
     const chars = target.value.length;
     const noSpaceChars = target.value.replaceAll(' ', '').length;
     const words = target.value
       .trim()
       .split(/\s+/)
-      .filter((w) => w != '').length;
+      .filter((w) => w !== '').length;
     const segmenter = new Intl.Segmenter('en', {granularity: 'sentence'});
     const segments = segmenter.segment(target.value);
     const sentences = [...segments].filter((s) => s.segment.trim().length > 0).length;
@@ -34,12 +41,23 @@ function initialize() {
     'input',
     () => (totalCharsElem.textContent = noSpaceOptionElem.checked ? textInput.value.replaceAll(' ', '').length.toString() : textInput.value.length.toString())
   );
-  textInput.addEventListener('input', textObserver);
+
+  characterLimitOptionElem.addEventListener('click', () => {
+    if (characterLimitOptionElem.checked) {
+      setCharacterLimitElem.removeAttribute('hidden');
+      textInput.setAttribute('maxlength', setCharacterLimitElem.value);
+      return;
+    }
+    setCharacterLimitElem.toggleAttribute('hidden');
+    textInput.removeAttribute('maxlength');
+  });
 
   viewMoreBtn.addEventListener('click', () => {
     isDensityExpanded = !isDensityExpanded;
     renderDensityList();
   });
+
+  textInput.addEventListener('input', textObserver);
 }
 
 /** @param {string} text */
@@ -69,6 +87,7 @@ function analyzeText(text) {
   let maxFreq = 0;
   for (const char of cleanText) {
     counts[char] = (counts[char] || 0) + 1;
+
     if (counts[char] > maxFreq) maxFreq = counts[char];
   }
 
@@ -89,7 +108,7 @@ function analyzeText(text) {
    * If multiple letters share the same count (same bucket), sort them alphabetically.
    */
   densityData = [];
-  for (let i = maxFreq; i > 0; i--) {
+  for (let i = maxFreq; i > 0; --i) {
     if (buckets[i].length > 0) {
       buckets[i].sort().forEach((char) => {
         densityData.push({

@@ -17,9 +17,16 @@
       <section class="character-wrapper">
         <h2>Analyze your text in real-time.</h2>
         <textarea name="textInput" id="textInput" rows="7" class="text-input" placeholder="Start typing here (or paste your text)"></textarea>
-        <div class="no-space-option">
-          <label for="noSpaceOption">Exclude spaces</label>
-          <input type="checkbox" name="noSpaceOption" id="noSpaceOption" />
+        <div class="options">
+          <div class="no-space-option">
+            <label for="noSpaceOption">Exclude spaces</label>
+            <input type="checkbox" name="noSpaceOption" id="noSpaceOption" />
+          </div>
+          <div class="character-limit-option">
+            <input type="number" name="setCharacterLimit" id="setCharacterLimit" hidden />
+            <label for="characterLimitOption">Set Character Limit</label>
+            <input type="checkbox" name="characterLimitOption" id="characterLimitOption" />
+          </div>
         </div>
         <div class="banner-list">
           <div class="banner">
