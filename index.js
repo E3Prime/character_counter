@@ -1,63 +1,59 @@
+const textInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('textInput'));
+const noSpaceOptionElem = /** @type {HTMLInputElement} */ (document.getElementById('noSpaceOption'));
+const characterLimitOptionElem = /** @type {HTMLInputElement} */ (document.getElementById('characterLimitOption'));
+const setCharacterLimitElem = /** @type {HTMLInputElement} */ (document.getElementById('setCharacterLimit'));
+const [totalCharsElem, wordCountElem, sentenceCountElem] = /** @type {Array<HTMLElement>} */ ([...document.querySelectorAll('.banner > :first-child')]);
+const viewMoreBtn = /** @type {HTMLButtonElement} */ (document.getElementById('viewMoreBtn'));
+
+const DENSITY_LIMIT = 5;
+let isDensityExpanded = false;
 /** @type {Array<{letter: string, count: number, percentage: string}>} */
 let densityData = [];
-let isDensityExpanded = false;
-const DENSITY_LIMIT = 5;
 
-initialize();
+textInput.addEventListener('input', textObserver);
 
-function initialize() {
-  const textInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('textInput'));
-  const noSpaceOptionElem = /** @type {HTMLInputElement} */ (document.getElementById('noSpaceOption'));
-  const characterLimitOptionElem = /** @type {HTMLInputElement} */ (document.getElementById('characterLimitOption'));
-  const setCharacterLimitElem = /** @type {HTMLInputElement} */ (document.getElementById('setCharacterLimit'));
-  const [totalCharsElem, wordCountElem, sentenceCountElem] = /** @type {Array<HTMLElement>} */ ([...document.querySelectorAll('.banner > :first-child')]);
-  const viewMoreBtn = /** @type {HTMLButtonElement} */ (document.getElementById('viewMoreBtn'));
+noSpaceOptionElem.addEventListener(
+  'input',
+  () => (totalCharsElem.textContent = noSpaceOptionElem.checked ? textInput.value.replaceAll(' ', '').length.toString() : textInput.value.length.toString())
+);
 
-  /** @param {Event} e */
-  const textObserver = (e) => {
-    const target = /** @type {HTMLTextAreaElement} */ (e.target);
-    const characterLimitActive = setCharacterLimitElem.checkVisibility();
+characterLimitOptionElem.addEventListener('click', () => {
+  if (characterLimitOptionElem.checked) {
+    setCharacterLimitElem.removeAttribute('hidden');
+    textInput.setAttribute('maxlength', setCharacterLimitElem.value);
+    return;
+  }
+  setCharacterLimitElem.toggleAttribute('hidden');
+  textInput.removeAttribute('maxlength');
+});
 
-    if (characterLimitActive && target.value.length >= Number(setCharacterLimitElem.value)) {
-      return;
-    }
+viewMoreBtn.addEventListener('click', () => {
+  isDensityExpanded = !isDensityExpanded;
+  renderDensityList();
+});
 
-    const chars = target.value.length;
-    const noSpaceChars = target.value.replaceAll(' ', '').length;
-    const words = target.value
-      .trim()
-      .split(/\s+/)
-      .filter((w) => w !== '').length;
-    const segmenter = new Intl.Segmenter('en', {granularity: 'sentence'});
-    const segments = segmenter.segment(target.value);
-    const sentences = [...segments].filter((s) => s.segment.trim().length > 0).length;
-    noSpaceOptionElem.checked ? (totalCharsElem.textContent = noSpaceChars.toString()) : (totalCharsElem.textContent = chars.toString());
-    wordCountElem.textContent = words.toString();
-    sentenceCountElem.textContent = sentences.toString();
-    analyzeText(textInput.value);
-  };
+/** @param {Event} e */
+function textObserver(e) {
+  const target = /** @type {HTMLTextAreaElement} */ (e.target);
+  const characterLimitActive = setCharacterLimitElem.checkVisibility();
 
-  noSpaceOptionElem.addEventListener(
-    'input',
-    () => (totalCharsElem.textContent = noSpaceOptionElem.checked ? textInput.value.replaceAll(' ', '').length.toString() : textInput.value.length.toString())
-  );
+  if (characterLimitActive && target.value.length >= Number(setCharacterLimitElem.value)) {
+    return;
+  }
 
-  characterLimitOptionElem.addEventListener('click', () => {
-    if (characterLimitOptionElem.checked) {
-      setCharacterLimitElem.removeAttribute('hidden');
-      textInput.setAttribute('maxlength', setCharacterLimitElem.value);
-      return;
-    }
-    setCharacterLimitElem.toggleAttribute('hidden');
-    textInput.removeAttribute('maxlength');
-  });
-
-  viewMoreBtn.addEventListener('click', () => {
-    isDensityExpanded = !isDensityExpanded;
-    renderDensityList();
-  });
-
-  textInput.addEventListener('input', textObserver);
+  const chars = target.value.length;
+  const noSpaceChars = target.value.replaceAll(' ', '').length;
+  const words = target.value
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w !== '').length;
+  const segmenter = new Intl.Segmenter('en', {granularity: 'sentence'});
+  const segments = segmenter.segment(target.value);
+  const sentences = [...segments].filter((s) => s.segment.trim().length > 0).length;
+  noSpaceOptionElem.checked ? (totalCharsElem.textContent = noSpaceChars.toString()) : (totalCharsElem.textContent = chars.toString());
+  wordCountElem.textContent = words.toString();
+  sentenceCountElem.textContent = sentences.toString();
+  analyzeText(textInput.value);
 }
 
 /** @param {string} text */
