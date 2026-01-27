@@ -8,7 +8,7 @@ A comprehensive text analysis tool that tracks character metrics in real-time. B
 
 ## 🔗 Links
 
-- **Live Demo Link:**
+- **Live Demo Link:** https://e3prime.github.io/character_counter
 
 ## 📊 Character Counter Showcase
 
